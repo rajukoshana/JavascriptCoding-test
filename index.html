@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sample Crud Project</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- Popper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        .hidden{ display: none; !important;}
+    </style>
+</head>
+<body>
+<div class="table-data">
+    <h1 class="text-center">Sample Crud Project</h1>
+    <div class="col-md-12 text-right">
+
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-primary add_user" data-toggle="modal" data-target="#AddUser">
+           Add User
+        </button>
+        <button type="button" class="btn btn-success edit_user" data-toggle="modal" data-target="#AddUser">
+           Edit User
+        </button>
+
+        <!-- Modal -->
+        <div class="modal fade" id="AddUser" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <form class="adduser" id="adduser_form">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Add New User</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="form-group">
+                          <label class="label">User Name</label>
+                          <input type="text" class="form-control" id="username" name="username" required>
+                      </div>
+                        <div class="form-group">
+                            <label class="label">User Email</label>
+                            <input type="email" class="form-control" id="useremail" name="useremail" required>
+                        </div>
+                    </div>
+                    <input type="hidden" class="edit_userid" id="edit_userid" value="">
+                    <div class="modal-footer">
+
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+
+                        <button type="submit" class="btn btn-primary update_btn hidden">Update</button>
+                        <button type="submit" class="btn btn-primary add_btn">Add</button>
+                    </div>
+                </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-md-12"><br>
+
+    <table class="table table-bordered"><thead>
+    <tr>
+        <td><input type="checkbox" class="check_allusers"></td>
+        <td>USER ID</td>
+        <td>USER NAME</td>
+        <td>EMAIL ADDRESS</td>
+    </tr>
+    </thead>
+    <tbody class="table-content" id="list">
+
+    </tbody>
+
+    </table>
+
+    </div>
+    <div class="col-md-12">
+    <div class="row">
+    <div class="col-md-6 text-left">
+
+        <input type="button" id="first" onclick="firstPage()" value="first" />
+        <input type="button" id="next" onclick="nextPage()" value="next" />
+
+
+    </div>
+    <div class="col-md-6 text-right">
+        <input type="button" id="previous" onclick="previousPage()" value="previous" />
+        <input type="button" id="last" onclick="lastPage()" value="last" />
+    </div>
+    </div>
+    </div>
+
+</div>
+
+<div class="col-md-12"><br>
+
+<button class="btn btn-danger delete-user pull-left">Delete Users</button>
+    <div >
+
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+
+    var list = [];
+    var pageList = new Array();
+    var currentPage = 1;
+    var numberPerPage = 5;
+    var numberOfPages = 0;
+    var resultdata='';
+    function makeList() {
+
+
+    }
+
+    function getNumberOfPages() {
+        return Math.ceil(list.length / numberPerPage);
+    }
+
+    function nextPage() {
+        currentPage += 1;
+        loadList();
+    }
+
+    function previousPage() {
+        currentPage -= 1;
+        loadList();
+    }
+
+    function firstPage() {
+        currentPage = 1;
+        loadList();
+    }
+
+    function lastPage() {
+        currentPage = numberOfPages;
+        loadList();
+    }
+
+    /*********************************Load table user data******************************/
+    function loadList() {
+        var api_url='https://jsonplaceholder.typicode.com/users';
+        $.ajax({
+            /*url: endpoint + "?key=" + apiKey + " &q=" + $( this ).text(),*/
+            url: api_url,
+            method:"GET",
+            contentType: "application/json",
+            dataType: 'json',
+            success: function(result){
+                console.log(result);
+
+
+                if(result.length>0){
+
+                    for(var i=0; i<result.length; i++) {
+                        var body_content='';
+                        body_content= '<tr><td><input type="checkbox" class="user_id" value="'+result[i].id+'"></td><td>'+result[i].id+'</td><td>'+result[i].username+'</td><td>'+result[i].email+'</td></tr>';
+                        list.push(body_content);
+                    }
+                    var begin = ((currentPage - 1) * numberPerPage);
+                    var end = begin + numberPerPage;
+
+                    pageList = list.slice(begin, end);
+                    drawList();
+                    check();
+
+                }
+
+                /*jQuery(".table-content").html(body_content);*/
+            }
+
+        })
+
+        numberOfPages = getNumberOfPages();
+    }
+
+    function drawList() {
+        document.getElementById("list").innerHTML = "";
+        for (r = 0; r < pageList.length; r++) {
+            document.getElementById("list").innerHTML += pageList[r];
+        }
+    }
+
+    function check() {
+        document.getElementById("next").disabled = currentPage == numberOfPages ? true : false;
+        document.getElementById("previous").disabled = currentPage == 1 ? true : false;
+        document.getElementById("first").disabled = currentPage == 1 ? true : false;
+        document.getElementById("last").disabled = currentPage == numberOfPages ? true : false;
+    }
+
+    function load() {
+       /* makeList();*/
+        loadList();
+    }
+
+    window.onload = load;
+
+
+/********************************Add new user api*****************************/
+
+    jQuery("#adduser_form").submit(function(e){
+        e.preventDefault();
+        var api_url='https://jsonplaceholder.typicode.com/users';
+        var username=jQuery("#username").val();
+        var useremail=jQuery("#useremail").val();
+        var edit_userid=jQuery("#edit_userid").val();
+        var api_action_url='';
+        if(edit_userid!=''){
+            api_action_url=api_url + "?username=" + username + " &email=" + useremail+ " &id=" + edit_userid;
+        }
+        else{
+            api_action_url=api_url + "?username=" + username + " &email=" + useremail;
+        }
+
+        $.ajax({
+            url: api_action_url,
+            method:"POST",
+            success: function(result){
+                jQuery("#AddUser").modal('hide');
+                loadList();
+                console.log(result);
+
+            }
+        })
+    })
+/****************************Delete the selected user api*************************/
+    jQuery(".delete-user").on("click",function(){
+        var users_checked=[];
+        jQuery(".user_id:checked").each(function(){
+            users_checked.push($(this).val());
+        })
+        if(users_checked.length==0){
+            alert("Please select the user");
+            return false;
+        }
+        for(var k=0; k<users_checked.length; k++){
+            var userid=users_checked[k];
+            var api_url='https://jsonplaceholder.typicode.com/users/'+userid;
+            $.ajax({
+                url: api_url,
+                method:"DELETE",
+                success: function(result){
+                    console.log(result);
+                    loadList();
+                }
+            })
+        }
+
+
+    })
+
+    jQuery(".add_user").on("click",function(){
+
+                    jQuery("#username").val("");
+                    jQuery("#useremail").val("");
+                    jQuery("#edit_userid").val("");
+        jQuery(".update_btn").addClass("hidden");
+        jQuery(".add_btn").removeClass("hidden");
+
+
+    })
+
+ /*********************Call to update the user details api**********************/
+    jQuery(".edit_user").on("click",function(){
+        var users_checked=[];
+        jQuery(".user_id:checked").each(function(){
+            users_checked.push($(this).val());
+        })
+        if(users_checked.length==0){
+            alert("Please select the user");
+            return false;
+        }
+        var userid=jQuery(".user_id:checked").attr("value");
+
+            var api_url='https://jsonplaceholder.typicode.com/users/'+userid;
+            $.ajax({
+                url: api_url,
+                method:"GET",
+                success: function(result){
+                    jQuery("#username").val(result.username);
+                    jQuery("#useremail").val(result.email);
+                    jQuery("#edit_userid").val(result.id);
+                    jQuery(".update_btn").removeClass("hidden");
+                    jQuery(".add_btn").addClass("hidden");
+
+                }
+            })
+
+    })
+
+/***************check box check all users******************/
+    jQuery(".check_allusers").on("click",function(){
+        if(this.checked){
+            $('.user_id').each(function(){
+                this.checked = true;
+            });
+        }else{
+            $('.user_id').each(function(){
+                this.checked = false;
+            });
+        }
+    });
+
+</script>
+
+
+</html>
